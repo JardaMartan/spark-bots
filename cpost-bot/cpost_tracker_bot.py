@@ -119,7 +119,7 @@ Nezapomeňte, že je třeba mne oslovit '@{}'
 def help_me(personal=True):
 
     greeting_msg = """
-Napište mi číslo zásilky, o které chcete informace. Můžete poslat i více čísel, oddělených mezerou.
+Napište mi číslo zásilky, o které chcete informace. Můžete poslat i více čísel oddělených mezerou.
 """
     if not personal:
         greeting_msg += """
