@@ -152,7 +152,7 @@ def format_parcel_status(status, accepted_ids=()):
         pass
 
     if id_is_num or (status.get("id") in accepted_ids):
-        parcel_format = "{} --> {}".format(status.get("date"), status.get("text"))
+        parcel_format = "{} ----> {}".format(status.get("date"), status.get("text"))
         if (status.get("postcode") is not None) and (status.get("postoffice") is not None):
             parcel_format += " ({} - {})".format(status.get("postcode"), status.get("postoffice"))
 
@@ -227,8 +227,14 @@ def spark_webhook():
                 msg = help_me(personal_room)
             else:
                 msg = ""
+                first_line = True
                 for parcel_id in in_message.split():
                     if len(parcel_id) == 13: # ceska posta
+                        if first_line:
+                            first_line = False
+                        else:
+                            msg += "\n- - -\n"
+
                         parcel_data = get_parcel_info(parcel_id)
                         parcel_history = []
                         for status in parcel_data[0].get("states").get("state"):
@@ -237,19 +243,16 @@ def spark_webhook():
                                 parcel_history.append(hist_data)
     
                         if len(parcel_data) > 0:
-                            msg += """
-Zásilka: **{}**  
-Aktuální stav: **{}**""".format(parcel_data[0].get("id"), parcel_history[-1])
+                            msg += "## **{}**  \n".format(parcel_data[0].get("id"))
                             if len(parcel_history) > 1:
-                                msg += """  
-Historie:  
-{}
-""".format("  \n".join(parcel_history[0:-1]))
-                            else:
+#                                 msg += "Historie:\n"
+                                for line in parcel_history[0:-1]:
+                                    msg += "> {}  \n".format(line)
                                 msg += "  \n"
+                            msg += "Aktuální stav: **{}**  \n".format(parcel_history[-1])
                         else:
-                            msg += "No data received for **{}**  \n".format(parcel_id)
-
+                            msg += "Žádná data pro zásilku **{}**  \n".format(parcel_id)
+                            
             if msg != None:
                 send_spark_post("/messages",
                                 {"roomId": webhook['data']['roomId'], "markdown": msg})
