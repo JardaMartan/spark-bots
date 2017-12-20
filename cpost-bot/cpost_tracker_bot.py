@@ -228,26 +228,27 @@ def spark_webhook():
             else:
                 msg = ""
                 for parcel_id in in_message.split():
-                    parcel_data = get_parcel_info(parcel_id)
-                    parcel_history = []
-                    for status in parcel_data[0].get("states").get("state"):
-                        hist_data = format_parcel_status(status, ("-B", "-I", "-F", "A1", "C5"))
-                        if hist_data != "":
-                            parcel_history.append(hist_data)
-
-                    if len(parcel_data) > 0:
-                        msg += """
+                    if len(parcel_id) == 13: # ceska posta
+                        parcel_data = get_parcel_info(parcel_id)
+                        parcel_history = []
+                        for status in parcel_data[0].get("states").get("state"):
+                            hist_data = format_parcel_status(status, ("-B", "-I", "-F", "A1", "C5"))
+                            if hist_data != "":
+                                parcel_history.append(hist_data)
+    
+                        if len(parcel_data) > 0:
+                            msg += """
 Zásilka: **{}**  
 Aktuální stav: **{}**""".format(parcel_data[0].get("id"), parcel_history[-1])
-                        if len(parcel_history) > 1:
-                            msg += """  
+                            if len(parcel_history) > 1:
+                                msg += """  
 Historie:  
 {}
 """.format("  \n".join(parcel_history[0:-1]))
+                            else:
+                                msg += "  \n"
                         else:
-                            msg += "  \n"
-                    else:
-                        msg += "No data received for **{}**  \n".format(parcel_id)
+                            msg += "No data received for **{}**  \n".format(parcel_id)
 
             if msg != None:
                 send_spark_post("/messages",
