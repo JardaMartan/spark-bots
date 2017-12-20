@@ -226,20 +226,28 @@ def spark_webhook():
                 personal_room = is_room_direct(webhook['data']['roomId'])
                 msg = help_me(personal_room)
             else:
+                msg = ""
                 for parcel_id in in_message.split():
                     parcel_data = get_parcel_info(parcel_id)
                     parcel_history = []
                     for status in parcel_data[0].get("states").get("state"):
-                        hist_data = format_parcel_status(status, ("-B", "-I", "-F"))
+                        hist_data = format_parcel_status(status, ("-B", "-I", "-F", "A1", "C5"))
                         if hist_data != "":
                             parcel_history.append(hist_data)
 
-                    msg = """
+                    if len(parcel_data) > 0:
+                        msg += """
 Zásilka: **{}**  
-Aktuální stav: **{}**  
+Aktuální stav: **{}**""".format(parcel_data[0].get("id"), parcel_history[-1])
+                        if len(parcel_history) > 1:
+                            msg += """  
 Historie:  
 {}
-""".format(parcel_data[0].get("id"), parcel_history[-1], "  \n".join(parcel_history[0:-1]))
+""".format("  \n".join(parcel_history[0:-1]))
+                        else:
+                            msg += "  \n"
+                    else:
+                        msg += "No data received for **{}**  \n".format(parcel_id)
 
             if msg != None:
                 send_spark_post("/messages",
