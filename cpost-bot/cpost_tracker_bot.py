@@ -24,6 +24,7 @@ app.config["DEBUG"] = True
 webhook_url = None
 bot_name = cfg.bot_name
 bot_email = cfg.bot_email
+avatar_url= "http://bit.ly/SparkBot-512x512"
 requests.packages.urllib3.disable_warnings()
 
 
@@ -172,7 +173,7 @@ def is_room_direct(room_id):
 
 @app.before_first_request
 def startup():
-    global bot_email, bot_name
+    global bot_email, bot_name, avatar_url
     
     if len(cfg.bot_access_token) != 0:
         test_auth = send_spark_get("/people/me", js=False)
@@ -186,7 +187,7 @@ def startup():
             test_auth = test_auth.json()
             bot_name = test_auth.get("displayName", "")
             bot_email = test_auth.get("emails", "")[0]
-            test_auth = send_spark_get("/people/me", js=False)
+            avatar_url =  test_auth.get("avatar", "http://bit.ly/SparkBot-512x512")
     else:
         app.logger.error("'cfg.bot_access_token' variable is empty! \n"
               "Please populate it with bot's access token and run the script again.\n"
@@ -258,8 +259,8 @@ def spark_webhook():
                                 {"roomId": webhook['data']['roomId'], "markdown": msg})
         return "true"
     elif request.method == 'GET':
-        message = "<center><img src=\"http://bit.ly/SparkBot-512x512\" alt=\"Spark Bot\" style=\"width:256; height:256;\"</center>" \
-                  "<center><h2><b>Congratulations! Your <i style=\"color:#ff8000;\">%s</i> bot is up and running.</b></h2></center>" % bot_name
+        message = "<center><img src=\"{0}\" alt=\"{1}\" style=\"width:256; height:256;\"</center>" \
+                  "<center><h2><b>Congratulations! Your <i style=\"color:#ff8000;\">{1}</i> bot is up and running.</b></h2></center>".format(avatar_url, bot_name)
                   
         message += "<center><b>I'm hosted at: <a href=\"{0}\">{0}</a></center>".format(request.url)
         if webhook_url is None:
